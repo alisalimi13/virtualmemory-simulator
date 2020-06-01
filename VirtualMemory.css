@@ -1,0 +1,27 @@
+* {
+    box-sizing: border-box;
+}
+
+.h-body {
+    height: 100vh;
+}
+
+.h-header {
+    height: 5%;
+}
+
+.h-footer {
+    height: 5%;
+}
+
+.h-section-1 {
+    height: 45%;
+}
+
+.h-section-2 {
+    height: 45%;
+}
+
+.h-section {
+    height: 90%;
+}

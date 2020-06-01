@@ -1,0 +1,162 @@
+<!--In The Name Of Allah-->
+
+<html lang="fa">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Virtual Memory</title>
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" href="FormGenerator.css">
+    <link rel="stylesheet" href="VirtualMemory.css">
+</head>
+
+<body id="root" class="container-fluid h-body ag-bg-img1-s">
+
+    <header id="header" class="row h-header ag-c5">
+        <nav class="col-sm-12 navbar navbar-expand">
+            <span class="navbar-brand">Virtual Memory</span>
+            <ul class="navbar-nav">
+                <li class="nav-item btn-group">
+                    <button type="button" class="btn btn-sm rounded-0 btn-dark" v-on:click="newScene()">New Scene</button>
+                </li>
+            </ul>
+        </nav>
+    </header>
+
+    <section class="row h-section">
+        <div id="disk" class="col-2 card p-0 rounded-0 ag-c1 ag-bg-opacity-h">
+            <div class="card-header p-1">Disk</div>
+            <div class="card-body ag-oa ag-card-column">
+                <div v-for="(process, i) in processes" :key="i" :style="{backgroundColor: process.color}" class="card">
+                    <div class="card-header p-1">{{'process ' + i}}</div>
+                    <div class="card-body">
+                        <div v-for="(page, j) in process.content" :key="j" style="border:1px solid white;">{{'page ' + j}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="memory" class="col-2 card p-0 rounded-0 ag-c1 ag-bg-opacity-h">
+            <div class="card-header p-1">Memory</div>
+            <div class="card-body ag-oa">
+                <div v-for="(frame, i) in memory" :key="i" style="border:3px solid white;"
+                    :style="{backgroundColor: (pageTable[i].process == null? 'grey' : DiskV.processes[pageTable[i].process].color)}">
+                    <div v-for="(data, j) in frame" :key="j" style="border:1px solid white;">{{data}}</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="cpu" class="col-1 card p-0 rounded-0 ag-c1 ag-bg-opacity-h">
+            <div class="card-header p-1">CPU</div>
+            <div class="card-body ag-card-column ag-oa">
+                <div v-for="(process, i) in DiskV.processes" :key="i" :style="{backgroundColor: process.color}" class="card">
+                    <div class="card-body">{{'p' + process.number}}</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-table" class="col-3 card p-0 rounded-0 ag-c1 ag-bg-opacity-h">
+            <div class="card-header p-1">Page Table</div>
+            <div class="card-body ag-oa">
+                <table class="table ag-c4 table-striped">
+                    <thead>
+                        <tr>
+                            <th>Frame</th>
+                            <th>Process</th>
+                            <th>Page</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(record, i) in MemoryV.pageTable" :key="i">
+                            <td>{{record.frame}}</td>
+                            <td>{{record.process}}</td>
+                            <td>{{record.page}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="fifo-queue" class="col-1 card p-0 rounded-0 ag-c1 ag-bg-opacity-h">
+            <div class="card-header p-1">FIFO Queue</div>
+            <div class="card-body ag-oa">
+                <ul class="list-group ag-c4">
+                    <li class="list-group-item" v-for="(frame, i) in MemoryV.queue" :key="i">
+                        {{frame}}
+                    </li> 
+                </ul>
+            </div>
+        </div>
+
+        <div id="events" class="col-3 card p-0 rounded-0 ag-c1 ag-bg-opacity-h">
+            <div class="card-header p-1">Events</div>
+            <div class="card-body ag-oa">
+                <ul class="list-group ag-c4">
+                    <li class="list-group-item" v-for="(event, i) in events.slice().reverse()" :key="i">
+                        {{event}}
+                    </li> 
+                </ul>
+            </div>
+            <div class="card-footer p-0">
+                <button type="button" class="btn btn-sm rounded-0 btn-dark col-12" v-on:click="start()">Start</button>
+            </div>
+        </div>
+    </section>
+
+    <footer id="footer" class="row h-footer ag-c5">
+        <nav class="col-sm-12 navbar navbar-expand">
+            <span class="navbar-brand">@alisalimi13</span>
+        </nav>
+    </footer>
+
+    <div class="modal" id="new-scene-modal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header"><h4>New Scene</h4></div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="small">Frame/Page Size (Byte)</label>
+                        <input type="number" step="1" class="form-control form-control-sm ag-c4" v-model.number="frameSize"/>
+                    </div>
+                    <div class="form-group">
+                        <label class="small">Memory Size (Frame)</label>
+                        <input type="number" step="1" class="form-control form-control-sm ag-c4" v-model.number="memorySize"/>
+                    </div>
+                    <div class="form-group">
+                        <table class="table ag-c4 table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Number</th>
+                                    <th>Size (page)</th>
+                                    <th>Color</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(process, i) in processes" :key="i">
+                                    <td>{{process.number}}</td>
+                                    <td>
+                                        <input type="number" step="1" class="form-control form-control-sm ag-c4" v-model.number="process.size"/>
+                                    </td>
+                                    <td :style="{backgroundColor: process.color}"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <button type="button" class="btn btn-grey" @click="addProcess">Add Process</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-grey" @click="create">Create</button>
+                    <button type="button" class="btn btn-grey" @click="cancel">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="jquery.min.js"></script>
+    <script src="bootstrap.min.js"></script>
+    <script src="vue.min.js"></script>
+    <script src="VirtualMemory.js"></script>
+</body>
+
+</html>
